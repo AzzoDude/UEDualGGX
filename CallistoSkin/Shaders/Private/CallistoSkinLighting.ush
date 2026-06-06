@@ -1,0 +1,40 @@
+// Callisto Skin lighting entry point (auto-called by engine)
+
+#ifndef CALLISTO_SKIN_LIGHTING_INCLUDED
+#define CALLISTO_SKIN_LIGHTING_INCLUDED
+
+#include "/Plugin/CallistoSkin/CallistoSkinShadingModel.ush"
+
+float3 CustomShadingModel_CallistoSkin(
+    FPixelMaterialInputs PixelMaterialInputs,
+    in out FDeferredLightData LightData,
+    float3 DiffuseColor,
+    float3 SpecularColor,
+    float Roughness,
+    float3 WorldNormal,
+    float3 ViewDirection,
+    float3 SubsurfaceColor,
+    float Opacity,
+    FGBufferData GBuffer,
+    float2 SvPosition)
+{
+    float3 L = LightData.L;
+    float3 H = normalize(ViewDirection + L);
+    float NoL = saturate(dot(WorldNormal, L));
+    float NoV = saturate(dot(WorldNormal, ViewDirection));
+    float NoH = saturate(dot(WorldNormal, H));
+    float VoH = saturate(dot(ViewDirection, H));
+
+    float3 F0 = GBuffer.SpecularColor;
+    float3 F90 = ComputeF90(F0);
+    float3 MSScale = 1.0f;
+
+    float3 Lighting = LightData.Color * LightData.Falloff * LightData.Shadow;
+
+    float3 DiffuseContrib  = CallistoDiffuse(DiffuseColor, Roughness, NoV, NoL, VoH) * Lighting * NoL;
+    float3 SpecularContrib = CallistoSpecular(F0, F90, Roughness, NoV, NoL, NoH, VoH, MSScale) * Lighting * NoL;
+
+    return DiffuseContrib + SpecularContrib;
+}
+
+#endif

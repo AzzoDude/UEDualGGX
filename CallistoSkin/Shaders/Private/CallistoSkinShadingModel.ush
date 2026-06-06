@@ -1,0 +1,48 @@
+// Callisto Skin custom shading model BRDF math
+
+#ifndef CALLISTO_SKIN_BRDF_INCLUDED
+#define CALLISTO_SKIN_BRDF_INCLUDED
+
+#include "/Engine/Private/BRDF.ush"
+#include "/Engine/Private/ShadingModelsMaterial.ush"
+
+// Disney diffuse with smooth terminator
+float3 CallistoDiffuse(float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH)
+{
+    // Disney diffuse retroreflection
+    float FL = pow(1.0f - saturate(NoL), 5.0f);
+    float FV = pow(1.0f - NoV, 5.0f);
+    float Fd90 = 0.5f + 2.0f * Roughness * (VoH * VoH);
+    float Fd = lerp(1.0f, Fd90, FL) * lerp(1.0f, Fd90, FV);
+
+    // Smooth terminator
+    float Terminator = saturate(NoL * 2.0f);
+    Terminator = Terminator * Terminator * (3.0f - 2.0f * Terminator); // smoothstep
+
+    // Pre-divide by NoL to cancel later multiplication (term trick)
+    return DiffuseColor * (1.0f / PI) * Fd * (Terminator / max(0.001f, NoL));
+}
+
+// Dual-lobe GGX specular with blend (oily skin)
+float3 CallistoSpecular(float3 F0, float3 F90, float Roughness, float NoV, float NoL, float NoH, float VoH, float3 MSScale)
+{
+    // Primary lobe (standard GGX)
+    float Alpha = Roughness * Roughness;
+    float D = D_GGX(Alpha, NoH);
+    float Vis = Vis_SmithJointApprox(Alpha, NoV, NoL);
+    float3 Fresnel = F_Schlick(F0, F90, VoH);
+
+    // Secondary lobe (wider, for the oily layer)
+    float SecondaryRoughness = saturate(Roughness * 2.0f + 0.1f);
+    float SecondaryAlpha = SecondaryRoughness * SecondaryRoughness;
+    float SecondaryD = D_GGX(SecondaryAlpha, NoH);
+    float SecondaryVis = Vis_SmithJointApprox(SecondaryAlpha, NoV, NoL);
+
+    const float LobeMix = 0.3f;   // blend 30% wide, 70% sharp
+    float FinalD = lerp(D, SecondaryD, LobeMix);
+    float FinalVis = lerp(Vis, SecondaryVis, LobeMix);
+
+    return FinalD * FinalVis * MSScale * Fresnel;
+}
+
+#endif

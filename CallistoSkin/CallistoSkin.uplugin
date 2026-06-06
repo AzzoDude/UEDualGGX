@@ -1,0 +1,16 @@
+{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Callisto Skin Shading Model",
+    "Description": "Adds the Callisto Protocol skin BRDF as a custom shading model.",
+    "Category": "Rendering",
+    "CreatedBy": "Your Name",
+    "Modules": [
+        {
+            "Name": "CallistoSkin",
+            "Type": "Runtime",
+            "LoadingPhase": "PostConfigInit"
+        }
+    ]
+}
