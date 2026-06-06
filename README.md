@@ -20,6 +20,19 @@ This patch modifies `SubstrateEvaluation.ush` to replace the default engine ligh
 ## Performance
 **Extremely Optimized.** Because these are mathematical shader modifications (adding ~15 basic arithmetic instructions per pixel), the performance impact is virtually zero (fractions of a millisecond). It is massively faster than trying to achieve the same visual fidelity using Lumen or standard Subsurface Profile materials.
 
+## Under the Hood: The Mathematics
+
+For graphics programmers interested in how this alters the standard Unreal Engine evaluation loop:
+
+### 1. Disney Diffuse
+Unreal's default `Diffuse_Lambert` simply returns `DiffuseColor / PI`. We replace this with a full Disney diffuse formulation. We calculate Fresnel for both the Light vector (`NoL`) and the View vector (`NoV`) using a 5th-power approximation (`pow(1.0f - NoL, 5)`). We then mix this with a retroreflective peak that scales directly with the material's roughness. This pushes light into the grazing angles of the geometry, faking complex subsurface light transport.
+
+### 2. Smooth Terminator
+The classic "terminator problem" causes jagged shadows on low-tessellation models where `dot(N, L)` abruptly hits zero. We mitigate this by shifting and smoothing the boundary. We take the `NoL`, multiply it by 2 to stretch the gradient, and push it through a cubic smoothstep function `(3x^2 - 2x^3)`. This forces the lighting to gracefully fade out just before the shadow boundary, hiding geometry faceting.
+
+### 3. Dual GGX
+Standard UE5 Substrate slabs evaluate a single GGX microfacet distribution. To fake sweaty skin, we calculate the primary `D` (Distribution) and `Vis` (Visibility/Shadowing) terms using the material's base roughness. Then, we artificially generate a *secondary* roughness value (`saturate(SafeRoughness * 2.0f + 0.1f)`) to create a broader, softer underlying specular lobe. We then `lerp` these two lobes together. The sharp lobe handles the pinpoint wet glints, while the broad lobe handles the oily sheen.
+
 ## Installation
 
 1. Clone the Unreal Engine 5 source code from Epic Games' official GitHub.
