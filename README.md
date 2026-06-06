@@ -34,10 +34,10 @@ Standard UE5 Substrate slabs evaluate a single GGX microfacet distribution. To f
 ## Installation
 
 1. Clone the Unreal Engine 5 source code from Epic Games' official GitHub.
-2. Download the `UE5_Cinematic_BRDF_Substrate.diff` patch file from this repository.
+2. Download the `UEDualGGX.diff` patch file from this repository.
 3. Place the `.diff` file in your Unreal Engine root directory and apply it using Git:
    ```bash
-   git apply UE5_Cinematic_BRDF_Substrate.diff
+   git apply UEDualGGX.diff
    ```
 4. Run `Setup.bat` (or `.sh` on Linux/Mac).
 5. Run `GenerateProjectFiles.bat`.
