@@ -2,8 +2,6 @@
 
 This repository contains a custom, highly-optimized Bidirectional Reflectance Distribution Function (BRDF) patch for Unreal Engine 5's Substrate material framework. 
 
-It was originally developed for the martial arts game **VOVINAM** to achieve AAA-quality, photorealistic cinematic lighting on characters without the heavy performance cost of Lumen or native Subsurface Scattering.
-
 **Inspiration:** The mathematical models injected here are heavily inspired by the phenomenal rendering techniques presented by Striking Distance Studios (*The Callisto Protocol*) at SIGGRAPH 2023.
 
 ## Features
